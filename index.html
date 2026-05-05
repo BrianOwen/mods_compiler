@@ -1,0 +1,232 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Mods → FabMo Compiler — ShopBot Labs</title>
+  <link rel="icon" type="image/svg+xml" href="/favicon.svg">
+  <link rel="stylesheet" href="../ui_testbed/themes/tokens.css">
+  <link rel="stylesheet" href="../ui_testbed/themes/components.css">
+  <link rel="stylesheet" href="../ui_testbed/themes/theme-picker.css">
+  <script src="https://cdn.jsdelivr.net/npm/jszip@3.10.1/dist/jszip.min.js"></script>
+  <script src="../ui_testbed/themes/theme-picker.js" defer></script>
+  <style>
+    body {
+      margin: 0;
+      font-family: var(--font-sans, system-ui, sans-serif);
+      background: var(--clr-bg, #1a1a1a);
+      color: var(--clr-text, #eee);
+      min-height: 100vh;
+    }
+    .page {
+      max-width: 720px;
+      margin: 0 auto;
+      padding: 32px 20px 80px;
+    }
+    .header {
+      display: flex;
+      align-items: center;
+      gap: 14px;
+      margin-bottom: 24px;
+    }
+    .header img { height: 44px; }
+    .header h1 {
+      margin: 0;
+      font-size: 22px;
+      font-weight: 600;
+    }
+    .header .subtitle {
+      color: var(--clr-text-secondary, #aaa);
+      font-size: 13px;
+      margin-top: 2px;
+    }
+    .card {
+      background: var(--clr-surface, #262626);
+      border: 1px solid var(--clr-border, #444);
+      border-radius: 8px;
+      padding: 20px;
+      margin-bottom: 18px;
+    }
+    .drop-zone {
+      border: 2px dashed var(--clr-border, #555);
+      border-radius: 8px;
+      padding: 36px 16px;
+      text-align: center;
+      cursor: pointer;
+      transition: border-color 0.15s, background 0.15s;
+    }
+    .drop-zone:hover, .drop-zone.dragover {
+      border-color: var(--clr-accent, #4af);
+      background: var(--clr-surface-2, #2e2e2e);
+    }
+    .drop-zone p { margin: 6px 0; }
+    .drop-zone .hint {
+      color: var(--clr-text-secondary, #aaa);
+      font-size: 12px;
+    }
+    .file-info {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      padding: 10px 14px;
+      background: var(--clr-surface-2, #2e2e2e);
+      border-radius: 6px;
+      margin-top: 12px;
+      font-family: monospace;
+      font-size: 13px;
+    }
+    .file-info button {
+      background: none;
+      border: none;
+      color: var(--clr-text-secondary, #aaa);
+      cursor: pointer;
+      font-size: 18px;
+    }
+    .field {
+      display: flex;
+      flex-direction: column;
+      gap: 6px;
+      margin-bottom: 14px;
+    }
+    .field label {
+      font-size: 12px;
+      color: var(--clr-text-secondary, #aaa);
+      text-transform: uppercase;
+      letter-spacing: 0.5px;
+    }
+    .field input[type="text"] {
+      padding: 8px 10px;
+      background: var(--clr-surface-2, #2e2e2e);
+      border: 1px solid var(--clr-border, #444);
+      border-radius: 4px;
+      color: var(--clr-text, #eee);
+      font-size: 14px;
+      font-family: inherit;
+    }
+    .field input[type="color"] {
+      width: 60px;
+      height: 36px;
+      border: 1px solid var(--clr-border, #444);
+      border-radius: 4px;
+      background: none;
+      padding: 0;
+      cursor: pointer;
+    }
+    .row {
+      display: flex;
+      gap: 14px;
+      align-items: flex-end;
+    }
+    .row .field { flex: 1; }
+    button.build {
+      width: 100%;
+      padding: 12px;
+      background: var(--clr-accent, #2a7a2a);
+      color: #fff;
+      border: none;
+      border-radius: 6px;
+      font-size: 15px;
+      font-weight: 600;
+      cursor: pointer;
+      transition: opacity 0.15s;
+    }
+    button.build:disabled {
+      opacity: 0.5;
+      cursor: not-allowed;
+    }
+    .log {
+      margin-top: 14px;
+      font-family: monospace;
+      font-size: 12px;
+      color: var(--clr-text-secondary, #aaa);
+      max-height: 160px;
+      overflow-y: auto;
+      padding: 8px 12px;
+      background: var(--clr-surface-2, #2e2e2e);
+      border-radius: 4px;
+    }
+    .log .ok { color: #6c6; }
+    .log .err { color: #f66; }
+    .footnote {
+      font-size: 12px;
+      color: var(--clr-text-secondary, #888);
+      line-height: 1.5;
+      margin-top: 18px;
+    }
+    .footnote code {
+      background: var(--clr-surface-2, #2e2e2e);
+      padding: 1px 5px;
+      border-radius: 3px;
+    }
+  </style>
+</head>
+<body>
+  <div class="page">
+    <div class="header">
+      <img src="../ui_testbed/SBLogo Crop.png" alt="ShopBot Labs">
+      <div>
+        <h1>Mods → FabMo Compiler</h1>
+        <div class="subtitle">Wraps a Mods HTML export as an installable FabMo (.fma) app</div>
+      </div>
+    </div>
+
+    <div class="card">
+      <div class="field">
+        <label>1. Mods HTML export</label>
+      </div>
+      <div id="dropZone" class="drop-zone">
+        <p>Drag &amp; drop a Mods HTML export</p>
+        <p class="hint">or click to browse</p>
+        <input type="file" id="fileInput" accept=".html,.htm" hidden>
+      </div>
+      <div id="fileInfo" class="file-info" hidden>
+        <span id="fileName"></span>
+        <button id="clearFile" title="Clear">&times;</button>
+      </div>
+    </div>
+
+    <div class="card">
+      <div class="field">
+        <label>2. App metadata</label>
+      </div>
+      <div class="field">
+        <input type="text" id="appName" placeholder="App name (e.g. PCB Mill)">
+      </div>
+      <div class="field">
+        <input type="text" id="appDesc" placeholder="Description (optional)">
+      </div>
+      <div class="row">
+        <div class="field" style="flex:0 0 auto;">
+          <label>Color</label>
+          <div style="display:flex;gap:6px;align-items:center;">
+            <input type="color" id="appColor" value="#5a8fce">
+            <button type="button" id="randomColor" title="Pick a random color"
+                    style="background:none;border:1px solid var(--clr-border,#444);color:var(--clr-text-secondary,#aaa);padding:7px 10px;border-radius:4px;cursor:pointer;font-size:14px;">🎲</button>
+          </div>
+        </div>
+        <div class="field">
+          <label>App ID (auto)</label>
+          <input type="text" id="appId" placeholder="auto-generated from name" readonly>
+        </div>
+        <div class="field" style="flex:0 0 auto;">
+          <label>Icon preview</label>
+          <div id="iconPreview" style="width:64px;height:64px;display:flex;align-items:center;justify-content:center;background:var(--clr-surface-2,#2e2e2e);border-radius:6px;"></div>
+        </div>
+      </div>
+    </div>
+
+    <button class="build" id="buildBtn" disabled>Build .fma</button>
+
+    <div class="log" id="log" hidden></div>
+
+    <div class="footnote">
+      Drop any Mods HTML export. The compiler injects a small bridge that
+      intercepts the <code>save file</code> module's download and routes the
+      output to the FabMo job queue when running on a tool. Outside FabMo the
+      wrapped app behaves like the original Mods export.
+    </div>
+  </div>
+
+  <script src="compiler.js"></script>
+</body>
+</html>
