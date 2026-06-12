@@ -9,7 +9,6 @@
   <link rel="stylesheet" href="../ui_testbed/themes/components.css">
   <link rel="stylesheet" href="../ui_testbed/themes/theme-picker.css">
   <script src="https://cdn.jsdelivr.net/npm/jszip@3.10.1/dist/jszip.min.js"></script>
-  <script src="../ui_testbed/themes/theme-picker.js" defer></script>
   <style>
     body {
       margin: 0;
@@ -159,6 +158,7 @@
       border-radius: 3px;
     }
   </style>
+  <link rel="stylesheet" href="theme-bridge.css">
 </head>
 <body>
   <div class="page">
@@ -228,5 +228,9 @@
   </div>
 
   <script src="compiler.js"></script>
+  <script type="module">
+    import { initThemePicker } from '../ui_testbed/themes/theme-picker.js';
+    initThemePicker();
+  </script>
 </body>
 </html>

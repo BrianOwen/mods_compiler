@@ -1,0 +1,27 @@
+/* ═══════════════════════════════════════════════════════════════
+   Mods → FabMo Compiler — Theme Bridge
+   Maps the app's local --clr-* variables to shared --t-* tokens
+   so the inline styles in index.html follow the active theme.
+   ═══════════════════════════════════════════════════════════════ */
+
+/* ── Remap local vars to theme tokens ── */
+body[class*="theme-"] {
+  --clr-bg:             var(--t-bg-primary);
+  --clr-surface:        var(--t-bg-secondary);
+  --clr-surface-2:      var(--t-bg-tertiary);
+  --clr-text:           var(--t-text);
+  --clr-text-secondary: var(--t-text-dim);
+  --clr-border:         var(--t-border);
+  --clr-accent:         var(--t-accent);
+  --font-sans:          var(--t-font-main);
+}
+
+/* ── Layout: push below the shared top bar ── */
+body { padding-top: var(--sb-topbar-h); box-sizing: border-box; }
+
+/* ── Build button follows the action-button token group ── */
+body[class*="theme-"] button.build {
+  background: var(--t-btn-action-bg, var(--t-accent));
+  color: var(--t-btn-action-text, #fff);
+  border-radius: var(--t-radius);
+}
